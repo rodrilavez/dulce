@@ -783,35 +783,66 @@
   let pdfGenerado = null; // Variable global para guardar el PDF generado
   let logoBase64 = null; // Variable para almacenar el logo en base64
 
-  // Cargar el logo al inicio
+  // Cargar el logo al inicio usando fetch
   async function cargarLogo() {
     try {
-      const img = new Image();
-      img.crossOrigin = 'Anonymous';
-      img.src = 'logo-dulce.png';
+      // Intentar cargar con fetch primero
+      const response = await fetch('./logo-dulce.png');
+      const blob = await response.blob();
       
-      await new Promise((resolve, reject) => {
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          canvas.width = img.width;
-          canvas.height = img.height;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0);
-          logoBase64 = canvas.toDataURL('image/png');
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          logoBase64 = reader.result;
+          console.log('Logo cargado exitosamente');
           resolve();
         };
-        img.onerror = () => {
-          console.error('Error cargando logo');
-          resolve(); // Continuar sin logo
+        reader.onerror = () => {
+          console.error('Error al leer el logo');
+          resolve();
         };
+        reader.readAsDataURL(blob);
       });
     } catch (e) {
       console.error('Error al cargar logo:', e);
+      // Fallback: intentar con Image
+      try {
+        const img = new Image();
+        img.src = './logo-dulce.png';
+        
+        await new Promise((resolve) => {
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+            logoBase64 = canvas.toDataURL('image/png');
+            console.log('Logo cargado con fallback');
+            resolve();
+          };
+          img.onerror = () => {
+            console.error('Error total cargando logo');
+            resolve();
+          };
+        });
+      } catch (err) {
+        console.error('Fallback también falló:', err);
+      }
     }
   }
 
   // Cargar logo al cargar la página
-  window.addEventListener('load', cargarLogo);
+  window.addEventListener('load', async () => {
+    await cargarLogo();
+    // Actualizar el logo en el header si se cargó correctamente
+    if (logoBase64) {
+      const headerImg = document.querySelector('.header img');
+      if (headerImg) {
+        headerImg.src = logoBase64;
+      }
+    }
+  });
 
   async function generarPDF() {
     // Asegurar que el logo esté cargado
