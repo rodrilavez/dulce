@@ -781,9 +781,46 @@
 
 <script>
   let pdfGenerado = null; // Variable global para guardar el PDF generado
+  let logoBase64 = null; // Variable para almacenar el logo en base64
+
+  // Cargar el logo al inicio
+  async function cargarLogo() {
+    try {
+      const img = new Image();
+      img.crossOrigin = 'Anonymous';
+      img.src = 'logo-dulce.png';
+      
+      await new Promise((resolve, reject) => {
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+          logoBase64 = canvas.toDataURL('image/png');
+          resolve();
+        };
+        img.onerror = () => {
+          console.error('Error cargando logo');
+          resolve(); // Continuar sin logo
+        };
+      });
+    } catch (e) {
+      console.error('Error al cargar logo:', e);
+    }
+  }
+
+  // Cargar logo al cargar la página
+  window.addEventListener('load', cargarLogo);
 
   async function generarPDF() {
+    // Asegurar que el logo esté cargado
+    if (!logoBase64) {
+      await cargarLogo();
+    }
+
     // Agregamos algo de CSS específico para el PDF
+    const logoImg = logoBase64 ? `<img src="${logoBase64}" alt="Logo">` : '';
     let contentHTML = `
       <style>
         body {
@@ -792,14 +829,14 @@
         .pdf-header {
           display: flex;
           align-items: center;
-          gap: 15px;
-          margin-bottom: 15px;
+          gap: 10px;
+          margin-bottom: 10px;
           border-bottom: 3px solid #764ba2;
-          padding-bottom: 10px;
+          padding-bottom: 8px;
         }
         .pdf-header img {
-          width: 50px;
-          height: 50px;
+          width: 45px;
+          height: 45px;
           object-fit: contain;
         }
         .pdf-header-text {
@@ -807,35 +844,35 @@
         }
         .pdf-header h1 {
           color: #764ba2;
-          font-size: 16px;
-          margin-bottom: 3px;
+          font-size: 14px;
+          margin-bottom: 2px;
         }
         .pdf-header p {
           color: #666;
-          font-size: 10px;
+          font-size: 9px;
         }
         h2, h3 {
-          margin: 3px 0;
+          margin: 2px 0;
         }
         table {
           width: 100%;
           border-collapse: collapse;
-          margin-bottom: 8px;
-          font-size: 9px;
+          margin-bottom: 6px;
+          font-size: 8px;
         }
         table, th, td {
           border: 1px solid #000;
-          padding: 3px;
+          padding: 2px;
           text-align: left;
         }
         th {
           background-color: #764ba2;
           color: white;
-          font-size: 9px;
+          font-size: 8px;
         }
         td {
           word-wrap: break-word;
-          max-width: 200px;
+          max-width: 150px;
           overflow-wrap: break-word;
         }
         .valor-si {
@@ -849,15 +886,15 @@
           font-weight: bold;
         }
         .section-title {
-          margin-top: 8px;
-          margin-bottom: 3px;
-          font-size: 11px;
+          margin-top: 6px;
+          margin-bottom: 2px;
+          font-size: 10px;
           color: #764ba2;
           font-weight: bold;
         }
       </style>
       <div class="pdf-header">
-        <img src="logo-dulce.png" alt="Logo">
+        ${logoImg}
         <div class="pdf-header-text">
           <h1>DRA. DULCE MARÍA VELÁZQUEZ QUINTANA</h1>
           <p>Cirujano Dentista - Historia Clínica Dental</p>
@@ -1011,20 +1048,20 @@
     // --------------------- FIRMA ---------------------
     contentHTML += `
       <h3 class="section-title">Autorización del Paciente</h3>
-      <p style="font-size: 9px; margin: 8px 0; line-height: 1.3;">
+      <p style="font-size: 8px; margin: 5px 0; line-height: 1.2;">
         Por medio de la presente, autorizo a la Dra. Dulce María Velázquez Quintana a realizar los procedimientos 
         dentales necesarios. Confirmo que la información proporcionada en esta historia clínica es verídica y completa.
       </p>
-      <div style="margin-top: 25px;">
-        <div style="margin-bottom: 20px; font-size: 9px;">
+      <div style="margin-top: 15px;">
+        <div style="margin-bottom: 15px; font-size: 8px;">
           <strong>Nombre completo del paciente:</strong> ${document.getElementById('nombre').value}
         </div>
         <div style="text-align: center;">
-          <div style="display: inline-block; min-width: 250px; border-top: 2px solid #000; padding-top: 4px; font-size: 8px;">
+          <div style="display: inline-block; min-width: 200px; border-top: 2px solid #000; padding-top: 3px; font-size: 7px;">
             Firma del paciente
           </div>
-          <div style="display: inline-block; min-width: 120px; margin-left: 40px;">
-            <div style="border-top: 2px solid #000; padding-top: 4px; font-size: 8px;">
+          <div style="display: inline-block; min-width: 100px; margin-left: 30px;">
+            <div style="border-top: 2px solid #000; padding-top: 3px; font-size: 7px;">
               Fecha
             </div>
           </div>
@@ -1037,27 +1074,40 @@
     pdfDiv.innerHTML = contentHTML;
     pdfDiv.style.display = 'block';
 
-    // Convertimos a canvas con html2canvas
-    const canvas = await html2canvas(pdfDiv);
+    // Convertimos a canvas con html2canvas con mejor configuración
+    const canvas = await html2canvas(pdfDiv, {
+      scale: 2, // Mejor calidad
+      useCORS: true,
+      logging: false,
+      backgroundColor: '#ffffff'
+    });
     const imgData = canvas.toDataURL('image/png');
 
     // Usamos jsPDF para generar el archivo
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF('p', 'mm', 'a4');
-    const imgWidth = 190; // Ancho de la imagen en el PDF
+    
+    // Dimensiones de la página A4
+    const pageWidth = pdf.internal.pageSize.getWidth();
     const pageHeight = pdf.internal.pageSize.getHeight();
+    
+    // Calculamos el tamaño de la imagen para que quepa en A4 con márgenes
+    const margin = 10;
+    const imgWidth = pageWidth - (margin * 2);
     const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    
     let heightLeft = imgHeight;
-    let position = 10;
+    let position = margin;
 
-    pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
-    heightLeft -= pageHeight - 20;
+    // Primera página
+    pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
+    heightLeft -= (pageHeight - margin * 2);
 
     // Si el contenido es extenso, manejar varias páginas:
     while (heightLeft > 0) {
-      position = heightLeft - imgHeight;
+      position = heightLeft - imgHeight + margin;
       pdf.addPage();
-      pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+      pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
       heightLeft -= pageHeight;
     }
 
