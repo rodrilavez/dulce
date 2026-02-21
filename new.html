@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Historia Clínica Dental Completa</title>
+  <!-- Librerías para exportar a PDF -->
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 10px;
+    }
+    @media (min-width: 768px) {
+      body {
+        padding: 20px;
+      }
+    }
+    .header {
+      background: white;
+      padding: 15px;
+      border-radius: 15px 15px 0 0;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 10px;
+      margin-bottom: 0;
+    }
+    .header img {
+      width: 60px;
+      height: 60px;
+      object-fit: contain;
+    }
+    .header-text {
+      flex: 1;
+    }
+    .header-text h1 {
+      color: #667eea;
+      font-size: 18px;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .header-text p {
+      color: #666;
+      font-size: 12px;
+      font-style: italic;
+    }
+    @media (min-width: 768px) {
+      .header {
+        flex-direction: row;
+        text-align: left;
+        padding: 20px;
+        gap: 20px;
+      }
+      .header img {
+        width: 80px;
+        height: 80px;
+      }
+      .header-text h1 {
+        font-size: 24px;
+        letter-spacing: 1px;
+      }
+      .header-text p {
+        font-size: 14px;
+      }
+    }
+    h2, h3 {
+      margin-bottom: 8px;
+    }
+    .container {
+      max-width: 1000px;
+      margin: auto;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      overflow: hidden;
+    }
+    @media (min-width: 768px) {
+      .container {
+        border-radius: 15px;
+      }
+    }
+    .form-content {
+      padding: 15px;
+    }
+    @media (min-width: 768px) {
+      .form-content {
+        padding: 20px;
+      }
+    }
+    .form-section {
+      margin-bottom: 12px;
+      border: 2px solid #e0e0e0;
+      padding: 10px;
+      border-radius: 8px;
+      background: #f9f9f9;
+      transition: all 0.3s ease;
+    }
+    @media (min-width: 768px) {
+      .form-section {
+        margin-bottom: 15px;
+        padding: 12px;
+        border-radius: 10px;
+      }
+    }
+    .form-section:hover {
+      border-color: #667eea;
+      box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+    }
+    .form-section h3 {
+      margin-top: 0;
+      color: #667eea;
+      font-size: 14px;
+      padding-bottom: 6px;
+      border-bottom: 2px solid #667eea;
+      margin-bottom: 8px;
+    }
+    @media (min-width: 768px) {
+      .form-section h3 {
+        font-size: 16px;
+        padding-bottom: 8px;
+        margin-bottom: 10px;
+      }
+    }
+    .form-group {
+      margin-bottom: 10px;
+      display: flex;
+      flex-direction: column;
+      font-size: 12px;
+    }
+    @media (min-width: 768px) {
+      .form-group {
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        margin-bottom: 8px;
+        font-size: 13px;
+      }
+    }
+    .form-group label {
+      width: 100%;
+      font-weight: 600;
+      margin-bottom: 5px;
+      color: #333;
+    }
+    @media (min-width: 768px) {
+      .form-group label {
+        width: 180px;
+        margin-bottom: 0;
+        margin-right: 10px;
+      }
+    }
+    .form-group input[type="text"],
+    .form-group input[type="date"],
+    .form-group input[type="number"],
+    .form-group select {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 5px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      transition: border-color 0.3s;
+      font-size: 14px;
+    }
+    @media (min-width: 768px) {
+      .form-group input[type="text"],
+      .form-group input[type="date"],
+      .form-group input[type="number"],
+      .form-group select {
+        flex: 1;
+        min-width: 150px;
+        padding: 6px 10px;
+        font-size: 13px;
+      }
+    }
+    .form-group input[type="text"]:focus,
+    .form-group input[type="date"]:focus,
+    .form-group input[type="number"]:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    .form-group input[type="checkbox"] {
+      margin-left: 0;
+      margin-right: 8px;
+      margin-top: 8px;
+      cursor: pointer;
+      width: auto;
+      transform: scale(1.2);
+    }
+    @media (min-width: 768px) {
+      .form-group input[type="checkbox"] {
+        margin-left: 10px;
+        margin-right: 5px;
+        margin-top: 0;
+        transform: scale(1);
+      }
+    }
+    .form-group small {
+      margin-left: 0;
+      margin-top: 5px;
+      color: #666;
+      font-size: 10px;
+      display: block;
+      width: 100%;
+    }
+    @media (min-width: 768px) {
+      .form-group small {
+        margin-left: 5px;
+        margin-top: 0;
+        font-size: 11px;
+        display: inline;
+        width: auto;
+      }
+    }
+    .button-container {
+      text-align: center;
+      padding: 15px;
+      background: #f9f9f9;
+      border-radius: 0 0 10px 10px;
+    }
+    @media (min-width: 768px) {
+      .button-container {
+        padding: 20px;
+        border-radius: 0 0 15px 15px;
+      }
+    }
+    button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 14px 30px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+      border-radius: 25px;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      width: 100%;
+      max-width: 300px;
+    }
+    @media (min-width: 768px) {
+      button {
+        padding: 12px 40px;
+        font-size: 16px;
+        letter-spacing: 1px;
+        width: auto;
+      }
+    }
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+    }
+    button:active {
+      transform: translateY(0);
+    }
+    .pdf-preview {
+      display: none;
+      border: none;
+      padding: 20px;
+      margin-top: 20px;
+      background: white;
+      border-radius: 0;
+    }
+    .preview-actions {
+      display: none;
+      flex-wrap: wrap;
+      justify-content: center;
+      text-align: center;
+      margin-top: 15px;
+      padding: 15px;
+      background: #f9f9f9;
+      border-radius: 10px;
+    }
+    .preview-actions.show {
+      display: flex;
+    }
+    @media (min-width: 768px) {
+      .preview-actions {
+        margin-top: 20px;
+        padding: 20px;
+      }
+    }
+    .preview-actions button {
+      margin: 5px;
+      width: 100%;
+      max-width: 280px;
+    }
+    @media (min-width: 768px) {
+      .preview-actions button {
+        margin: 0 10px;
+        width: auto;
+      }
+    }
+    .btn-download {
+      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    }
+    .btn-download:hover {
+      box-shadow: 0 6px 20px rgba(17, 153, 142, 0.6);
+    }
+    .btn-print {
+      background: linear-gradient(135deg, #ee0979 0%, #ff6a00 100%);
+    }
+    .btn-print:hover {
+      box-shadow: 0 6px 20px rgba(238, 9, 121, 0.6);
+    }
+    .btn-close {
+      background: linear-gradient(135deg, #636363 0%, #a2ab58 100%);
+    }
+    .btn-close:hover {
+      box-shadow: 0 6px 20px rgba(99, 99, 99, 0.6);
+    }
+    /* Estilos para hacer el formulario más compacto */
+    .row {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0;
+    }
+    @media (min-width: 768px) {
+      .row {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+    }
+    .checkbox-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    @media (min-width: 768px) {
+      .checkbox-group {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 0;
+        margin-top: 0;
+      }
+    }
+    .checkbox-item {
+      display: flex;
+      align-items: center;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <!-- HEADER CON LOGO Y NOMBRE -->
+  <div class="header">
+    <img src="logo-dulce.png" alt="Logo Dra. Dulce María">
+    <div class="header-text">
+      <h1>Dra. Dulce María Velázquez Quintana</h1>
+      <p>Cirujano Dentista - Historia Clínica Dental</p>
+    </div>
+  </div>
+
+  <!-- FORMULARIO PRINCIPAL -->
+  <div class="form-content">
+  <form id="formulario">
+    <!-- DATOS GENERALES -->
+    <div class="form-section">
+      <h3>Datos Generales</h3>
+      <div class="row">
+        <div class="form-group">
+          <label for="fecha">Fecha:</label>
+          <input type="date" id="fecha" name="fecha">
+        </div>
+        <div class="form-group">
+          <label for="edad">Edad:</label>
+          <input type="number" id="edad" name="edad">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="nombre">Nombre completo:</label>
+        <input type="text" id="nombre" name="nombre">
+      </div>
+
+      <div class="row">
+        <div class="form-group">
+          <label for="telefono">Teléfono:</label>
+          <input type="text" id="telefono" name="telefono">
+        </div>
+        <div class="form-group">
+          <label for="fecha_nac">Fecha de nacimiento:</label>
+          <input type="date" id="fecha_nac" name="fecha_nac">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="direccion">Dirección:</label>
+        <input type="text" id="direccion" name="direccion">
+      </div>
+
+      <div class="row">
+        <div class="form-group">
+          <label for="ocupacion">Ocupación:</label>
+          <input type="text" id="ocupacion" name="ocupacion">
+        </div>
+        <div class="form-group">
+          <label for="padecimiento">Padecimiento actual:</label>
+          <input type="text" id="padecimiento" name="padecimiento">
+        </div>
+      </div>
+    </div>
+
+    <!-- ANTECEDENTES HEREDO-FAMILIARES -->
+    <div class="form-section">
+      <h3>Antecedentes Heredo-Familiares (Padre / Madre)</h3>
+
+      <div class="form-group">
+        <label>Alergias (Padre/Madre):</label>
+        <select id="hfAlergiasPadre" name="hfAlergiasPadre">
+          <option value="NO">NO</option>
+          <option value="SI">SI</option>
+        </select>
+        <select id="hfAlergiasMadre" name="hfAlergiasMadre">
+          <option value="NO">NO</option>
+          <option value="SI">SI</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Asma (Padre/Madre):</label>
+        <select id="hfAsmaPadre" name="hfAsmaPadre">
+          <option value="NO">NO</option>
+          <option value="SI">SI</option>
+        </select>
+        <select id="hfAsmaMadre" name="hfAsmaMadre">
+          <option value="NO">NO</option>
+          <option value="SI">SI</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Cáncer (Padre/Madre):</label>
+        <select id="hfCancerPadre" name="hfCancerPadre">
+          <option value="NO">NO</option>
+          <option value="SI">SI</option>
+        </select>
+        <select id="hfCancerMadre" name="hfCancerMadre">
+          <option value="NO">NO</option>
+          <option value="SI">SI</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Cardiopatías (Padre/Madre):</label>
+        <select id="hfCardioPadre" name="hfCardioPadre">
+          <option value="NO">NO</option>
+          <option value="SI">SI</option>
+        </select>
+        <select id="hfCardioMadre" name="hfCardioMadre">
+          <option value="NO">NO</option>
+          <option value="SI">SI</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Convulsiones (Padre/Madre):</label>
+        <select id="hfConvulsionesPadre" name="hfConvulsionesPadre">
+          <option value="NO">NO</option>
+          <option value="SI">SI</option>
+        </select>
+        <select id="hfConvulsionesMadre" name="hfConvulsionesMadre">
+          <option value="NO">NO</option>
+          <option value="SI">SI</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Diabetes (Padre/Madre):</label>
+        <select id="hfDiabetesPadre" name="hfDiabetesPadre">
+          <option value="NO">NO</option>
+          <option value="SI">SI</option>
+        </select>
+        <select id="hfDiabetesMadre" name="hfDiabetesMadre">
+          <option value="NO">NO</option>
+          <option value="SI">SI</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Enfermedades renales (Padre/Madre):</label>
+        <select id="hfRenalesPadre" name="hfRenalesPadre">
+          <option value="NO">NO</option>
+          <option value="SI">SI</option>
+        </select>
+        <select id="hfRenalesMadre" name="hfRenalesMadre">
+          <option value="NO">NO</option>
+          <option value="SI">SI</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Hipertensión (Padre/Madre):</label>
+        <select id="hfHiperPadre" name="hfHiperPadre">
+          <option value="NO">NO</option>
+          <option value="SI">SI</option>
+        </select>
+        <select id="hfHiperMadre" name="hfHiperMadre">
+          <option value="NO">NO</option>
+          <option value="SI">SI</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Finado (Padre/Madre):</label>
+        <select id="hfFinadoPadre" name="hfFinadoPadre">
+          <option value="NO">NO</option>
+          <option value="SI">SI</option>
+        </select>
+        <select id="hfFinadoMadre" name="hfFinadoMadre">
+          <option value="NO">NO</option>
+          <option value="SI">SI</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Otros (Padre/Madre):</label>
+        <input type="text" id="hfOtrosPadre" name="hfOtrosPadre" placeholder="Describa...">
+        <input type="text" id="hfOtrosMadre" name="hfOtrosMadre" placeholder="Describa...">
+      </div>
+    </div>
+
+    <!-- ANTECEDENTES PERSONALES PATOLÓGICOS -->
+    <div class="form-section">
+      <h3>Antecedentes Personales Patológicos</h3>
+
+      <div class="form-group">
+        <label for="patAlergias">Alergias:</label>
+        <select id="patAlergias" name="patAlergias">
+          <option value="NO">NO</option>
+          <option value="SI">SI</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="patAsma">Asma:</label>
+        <select id="patAsma" name="patAsma">
+          <option value="NO">NO</option>
+          <option value="SI">SI</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="patCancer">Cáncer:</label>
+        <select id="patCancer" name="patCancer">
+          <option value="NO">NO</option>
+          <option value="SI">SI</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="patCardio">Cardiopatías:</label>
+        <select id="patCardio" name="patCardio">
+          <option value="NO">NO</option>
+          <option value="SI">SI</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="patConv">Convulsiones:</label>
+        <select id="patConv" name="patConv">
+          <option value="NO">NO</option>
+          <option value="SI">SI</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="patDiabetes">Diabetes:</label>
+        <select id="patDiabetes" name="patDiabetes">
+          <option value="NO">NO</option>
+          <option value="SI">SI</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="patRenales">Enf. Renales:</label>
+        <select id="patRenales" name="patRenales">
+          <option value="NO">NO</option>
+          <option value="SI">SI</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="patETS">Enfermedades de transmisión sexual:</label>
+        <select id="patETS" name="patETS">
+          <option value="NO">NO</option>
+          <option value="SI">SI</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="patFiebreReu">Fiebre reumática:</label>
+        <select id="patFiebreReu" name="patFiebreReu">
+          <option value="NO">NO</option>
+          <option value="SI">SI</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="patHepatitis">Hepatitis:</label>
+        <select id="patHepatitis" name="patHepatitis">
+          <option value="NO">NO</option>
+          <option value="SI">SI</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="patHipertension">Hipertensión:</label>
+        <select id="patHipertension" name="patHipertension">
+          <option value="NO">NO</option>
+          <option value="SI">SI</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="patCirugias">Intervenciones quirúrgicas:</label>
+        <select id="patCirugias" name="patCirugias">
+          <option value="NO">NO</option>
+          <option value="SI">SI</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="patTransfusiones">Transfusiones:</label>
+        <select id="patTransfusiones" name="patTransfusiones">
+          <option value="NO">NO</option>
+          <option value="SI">SI</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="patTrauma">Traumatismos:</label>
+        <select id="patTrauma" name="patTrauma">
+          <option value="NO">NO</option>
+          <option value="SI">SI</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="patTuber">Tuberculosis:</label>
+        <select id="patTuber" name="patTuber">
+          <option value="NO">NO</option>
+          <option value="SI">SI</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="patOtros">Otros:</label>
+        <input type="text" id="patOtros" name="patOtros" placeholder="Describa...">
+      </div>
+    </div>
+
+    <!-- ANTECEDENTES PERSONALES NO PATOLÓGICOS -->
+    <div class="form-section">
+      <h3>Antecedentes Personales No Patológicos</h3>
+
+      <!-- HÁBITOS -->
+      <div class="form-group">
+        <label>Hábitos:</label>
+        <div class="checkbox-group">
+          <div class="checkbox-item">
+            <input type="checkbox" id="habUñas" name="habUñas" value="Come uñas">
+            <label for="habUñas" style="width: auto; margin: 0 0 0 5px;">Come uñas</label>
+          </div>
+          <div class="checkbox-item">
+            <input type="checkbox" id="habChupa" name="habChupa" value="Chupa dedo">
+            <label for="habChupa" style="width: auto; margin: 0 0 0 5px;">Chupa dedo</label>
+          </div>
+          <div class="checkbox-item">
+            <input type="checkbox" id="habBrux" name="habBrux" value="Bruxismo">
+            <label for="habBrux" style="width: auto; margin: 0 0 0 5px;">Bruxismo</label>
+          </div>
+          <div class="checkbox-item">
+            <input type="checkbox" id="habMorder" name="habMorder" value="Morder carrillo">
+            <label for="habMorder" style="width: auto; margin: 0 0 0 5px;">Morder carrillo</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- ADICCIONES -->
+      <div class="form-group">
+        <label>Adicciones:</label>
+        <div class="checkbox-group">
+          <div class="checkbox-item">
+            <input type="checkbox" id="adicAlcohol" name="adicAlcohol" value="Alcoholismo">
+            <label for="adicAlcohol" style="width: auto; margin: 0 0 0 5px;">Alcoholismo</label>
+          </div>
+          <div class="checkbox-item">
+            <input type="checkbox" id="adicTabaco" name="adicTabaco" value="Tabaquismo">
+            <label for="adicTabaco" style="width: auto; margin: 0 0 0 5px;">Tabaquismo</label>
+          </div>
+          <div class="checkbox-item">
+            <input type="checkbox" id="adicDrogas" name="adicDrogas" value="Drogas">
+            <label for="adicDrogas" style="width: auto; margin: 0 0 0 5px;">Drogas</label>
+          </div>
+        </div>
+        <small>Si es Drogas, especifique:</small>
+        <input type="text" id="adicCual" name="adicCual" placeholder="¿Cuál?">
+      </div>
+
+      <!-- HIGIENE DENTAL -->
+      <div class="form-group">
+        <label for="higiene">Higiene dental:</label>
+        <select id="higiene" name="higiene">
+          <option value="una vez">Una vez al día</option>
+          <option value="dos veces">Dos veces al día</option>
+          <option value="tres o más">Tres o más veces al día</option>
+          <option value="ninguna">Ninguna</option>
+        </select>
+      </div>
+
+      <!-- INMUNIZACIONES -->
+      <div class="form-group">
+        <label for="inmunizaciones">Inmunizaciones:</label>
+        <input type="text" id="inmunizaciones" name="inmunizaciones" placeholder="Vacunas, etc.">
+      </div>
+
+      <!-- EMBARAZO ACTUAL -->
+      <div class="form-group">
+        <label for="embarazo">¿Existe embarazo?:</label>
+        <select id="embarazo" name="embarazo">
+          <option value="NO">NO</option>
+          <option value="SI">SI</option>
+        </select>
+      </div>
+
+      <!-- MEDICAMENTOS ACTUALES -->
+      <div class="form-group">
+        <label for="medicamentos">¿Toma algún medicamento?:</label>
+        <select id="medicamentos" name="medicamentos">
+          <option value="NO">NO</option>
+          <option value="SI">SI</option>
+        </select>
+        <small>Si es SÍ, especifique:</small>
+        <input type="text" id="medicamentosCual" name="medicamentosCual" placeholder="¿Cuál?">
+      </div>
+    </div>
+
+    <!-- AUTORIZACIÓN DEL PACIENTE -->
+    <div class="form-section">
+      <h3>Autorización del Paciente</h3>
+      <p style="font-size: 12px; line-height: 1.5; color: #555; margin-bottom: 10px;">
+        Al generar el PDF, se incluirá un espacio para la firma manuscrita del paciente, donde se autoriza 
+        a la Dra. Dulce María Velázquez Quintana a realizar los procedimientos dentales necesarios.
+      </p>
+    </div>
+
+  </form>
+  </div>
+
+  <!-- BOTÓN PARA GENERAR PDF -->
+  <div class="button-container">
+    <button type="button" onclick="generarPDF()">Generar PDF</button>
+  </div>
+
+  <!-- Vista previa oculta que convertimos a PDF -->
+  <div id="pdf" class="pdf-preview"></div>
+  
+  <!-- Botones de acción después de generar preview -->
+  <div id="previewActions" class="preview-actions">
+    <button type="button" class="btn-download" onclick="descargarPDF()">Descargar PDF</button>
+    <button type="button" class="btn-print" onclick="imprimirPDF()">Imprimir</button>
+    <button type="button" class="btn-close" onclick="cerrarPreview()">Cerrar</button>
+  </div>
+</div>
+
+<script>
+  let pdfGenerado = null; // Variable global para guardar el PDF generado
+
+  async function generarPDF() {
+    // Agregamos algo de CSS específico para el PDF
+    let contentHTML = `
+      <style>
+        body {
+          font-family: Arial, sans-serif;
+        }
+        .pdf-header {
+          display: flex;
+          align-items: center;
+          gap: 15px;
+          margin-bottom: 15px;
+          border-bottom: 3px solid #764ba2;
+          padding-bottom: 10px;
+        }
+        .pdf-header img {
+          width: 50px;
+          height: 50px;
+          object-fit: contain;
+        }
+        .pdf-header-text {
+          flex: 1;
+        }
+        .pdf-header h1 {
+          color: #764ba2;
+          font-size: 16px;
+          margin-bottom: 3px;
+        }
+        .pdf-header p {
+          color: #666;
+          font-size: 10px;
+        }
+        h2, h3 {
+          margin: 3px 0;
+        }
+        table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-bottom: 8px;
+          font-size: 9px;
+        }
+        table, th, td {
+          border: 1px solid #000;
+          padding: 3px;
+          text-align: left;
+        }
+        th {
+          background-color: #764ba2;
+          color: white;
+          font-size: 9px;
+        }
+        td {
+          word-wrap: break-word;
+          max-width: 200px;
+          overflow-wrap: break-word;
+        }
+        .valor-si {
+          background-color: #ffcdd2 !important;
+          color: #b71c1c !important;
+          font-weight: bold;
+        }
+        .valor-no {
+          background-color: #c8e6c9 !important;
+          color: #2e7d32 !important;
+          font-weight: bold;
+        }
+        .section-title {
+          margin-top: 8px;
+          margin-bottom: 3px;
+          font-size: 11px;
+          color: #764ba2;
+          font-weight: bold;
+        }
+      </style>
+      <div class="pdf-header">
+        <img src="logo-dulce.png" alt="Logo">
+        <div class="pdf-header-text">
+          <h1>DRA. DULCE MARÍA VELÁZQUEZ QUINTANA</h1>
+          <p>Cirujano Dentista - Historia Clínica Dental</p>
+        </div>
+      </div>
+    `;
+
+    // --------------------- DATOS GENERALES ---------------------
+    contentHTML += `
+      <h3 class="section-title">Datos Generales</h3>
+      <table>
+        <tr><th style="width: 30%;">Campo</th><th>Valor</th></tr>
+        <tr><td><strong>Fecha</strong></td><td>${document.getElementById('fecha').value}</td></tr>
+        <tr><td><strong>Nombre completo</strong></td><td>${document.getElementById('nombre').value}</td></tr>
+        <tr><td><strong>Dirección</strong></td><td>${document.getElementById('direccion').value}</td></tr>
+        <tr><td><strong>Teléfono/Celular</strong></td><td>${document.getElementById('telefono').value}</td></tr>
+        <tr><td><strong>Ocupación</strong></td><td>${document.getElementById('ocupacion').value}</td></tr>
+        <tr><td><strong>Edad</strong></td><td>${document.getElementById('edad').value}</td></tr>
+        <tr><td><strong>Fecha de Nacimiento</strong></td><td>${document.getElementById('fecha_nac').value}</td></tr>
+        <tr><td><strong>Padecimiento actual</strong></td><td>${document.getElementById('padecimiento').value}</td></tr>
+      </table>
+    `;
+
+    // --------------------- ANTECEDENTES HEREDO-FAMILIARES ---------------------
+    contentHTML += `
+      <h3 class="section-title">Antecedentes Heredo-Familiares (Padre / Madre)</h3>
+      <table>
+        <tr>
+          <th>Padecimiento</th>
+          <th>Padre</th>
+          <th>Madre</th>
+        </tr>
+        <tr>
+          <td><strong>Alergias</strong></td>
+          <td class="valor-${document.getElementById('hfAlergiasPadre').value.toLowerCase()}">${document.getElementById('hfAlergiasPadre').value}</td>
+          <td class="valor-${document.getElementById('hfAlergiasMadre').value.toLowerCase()}">${document.getElementById('hfAlergiasMadre').value}</td>
+        </tr>
+        <tr>
+          <td><strong>Asma</strong></td>
+          <td class="valor-${document.getElementById('hfAsmaPadre').value.toLowerCase()}">${document.getElementById('hfAsmaPadre').value}</td>
+          <td class="valor-${document.getElementById('hfAsmaMadre').value.toLowerCase()}">${document.getElementById('hfAsmaMadre').value}</td>
+        </tr>
+        <tr>
+          <td><strong>Cáncer</strong></td>
+          <td class="valor-${document.getElementById('hfCancerPadre').value.toLowerCase()}">${document.getElementById('hfCancerPadre').value}</td>
+          <td class="valor-${document.getElementById('hfCancerMadre').value.toLowerCase()}">${document.getElementById('hfCancerMadre').value}</td>
+        </tr>
+        <tr>
+          <td><strong>Cardiopatías</strong></td>
+          <td class="valor-${document.getElementById('hfCardioPadre').value.toLowerCase()}">${document.getElementById('hfCardioPadre').value}</td>
+          <td class="valor-${document.getElementById('hfCardioMadre').value.toLowerCase()}">${document.getElementById('hfCardioMadre').value}</td>
+        </tr>
+        <tr>
+          <td><strong>Convulsiones</strong></td>
+          <td class="valor-${document.getElementById('hfConvulsionesPadre').value.toLowerCase()}">${document.getElementById('hfConvulsionesPadre').value}</td>
+          <td class="valor-${document.getElementById('hfConvulsionesMadre').value.toLowerCase()}">${document.getElementById('hfConvulsionesMadre').value}</td>
+        </tr>
+        <tr>
+          <td><strong>Diabetes</strong></td>
+          <td class="valor-${document.getElementById('hfDiabetesPadre').value.toLowerCase()}">${document.getElementById('hfDiabetesPadre').value}</td>
+          <td class="valor-${document.getElementById('hfDiabetesMadre').value.toLowerCase()}">${document.getElementById('hfDiabetesMadre').value}</td>
+        </tr>
+        <tr>
+          <td><strong>Enf. Renales</strong></td>
+          <td class="valor-${document.getElementById('hfRenalesPadre').value.toLowerCase()}">${document.getElementById('hfRenalesPadre').value}</td>
+          <td class="valor-${document.getElementById('hfRenalesMadre').value.toLowerCase()}">${document.getElementById('hfRenalesMadre').value}</td>
+        </tr>
+        <tr>
+          <td><strong>Hipertensión</strong></td>
+          <td class="valor-${document.getElementById('hfHiperPadre').value.toLowerCase()}">${document.getElementById('hfHiperPadre').value}</td>
+          <td class="valor-${document.getElementById('hfHiperMadre').value.toLowerCase()}">${document.getElementById('hfHiperMadre').value}</td>
+        </tr>
+        <tr>
+          <td><strong>Finado</strong></td>
+          <td class="valor-${document.getElementById('hfFinadoPadre').value.toLowerCase()}">${document.getElementById('hfFinadoPadre').value}</td>
+          <td class="valor-${document.getElementById('hfFinadoMadre').value.toLowerCase()}">${document.getElementById('hfFinadoMadre').value}</td>
+        </tr>
+        <tr>
+          <td><strong>Otros</strong></td>
+          <td>${document.getElementById('hfOtrosPadre').value}</td>
+          <td>${document.getElementById('hfOtrosMadre').value}</td>
+        </tr>
+      </table>
+    `;
+
+    // --------------------- ANTECEDENTES PERSONALES PATOLÓGICOS ---------------------
+    contentHTML += `
+      <h3 class="section-title">Antecedentes Personales Patológicos</h3>
+      <table>
+        <tr><th>Concepto</th><th>Valor</th></tr>
+        <tr><td><strong>Alergias</strong></td><td class="valor-${document.getElementById('patAlergias').value.toLowerCase()}">${document.getElementById('patAlergias').value}</td></tr>
+        <tr><td><strong>Asma</strong></td><td class="valor-${document.getElementById('patAsma').value.toLowerCase()}">${document.getElementById('patAsma').value}</td></tr>
+        <tr><td><strong>Cáncer</strong></td><td class="valor-${document.getElementById('patCancer').value.toLowerCase()}">${document.getElementById('patCancer').value}</td></tr>
+        <tr><td><strong>Cardiopatías</strong></td><td class="valor-${document.getElementById('patCardio').value.toLowerCase()}">${document.getElementById('patCardio').value}</td></tr>
+        <tr><td><strong>Convulsiones</strong></td><td class="valor-${document.getElementById('patConv').value.toLowerCase()}">${document.getElementById('patConv').value}</td></tr>
+        <tr><td><strong>Diabetes</strong></td><td class="valor-${document.getElementById('patDiabetes').value.toLowerCase()}">${document.getElementById('patDiabetes').value}</td></tr>
+        <tr><td><strong>Enf. Renales</strong></td><td class="valor-${document.getElementById('patRenales').value.toLowerCase()}">${document.getElementById('patRenales').value}</td></tr>
+        <tr><td><strong>ETS</strong></td><td class="valor-${document.getElementById('patETS').value.toLowerCase()}">${document.getElementById('patETS').value}</td></tr>
+        <tr><td><strong>Fiebre reumática</strong></td><td class="valor-${document.getElementById('patFiebreReu').value.toLowerCase()}">${document.getElementById('patFiebreReu').value}</td></tr>
+        <tr><td><strong>Hepatitis</strong></td><td class="valor-${document.getElementById('patHepatitis').value.toLowerCase()}">${document.getElementById('patHepatitis').value}</td></tr>
+        <tr><td><strong>Hipertensión</strong></td><td class="valor-${document.getElementById('patHipertension').value.toLowerCase()}">${document.getElementById('patHipertension').value}</td></tr>
+        <tr><td><strong>Interv. quirúrgicas</strong></td><td class="valor-${document.getElementById('patCirugias').value.toLowerCase()}">${document.getElementById('patCirugias').value}</td></tr>
+        <tr><td><strong>Transfusiones</strong></td><td class="valor-${document.getElementById('patTransfusiones').value.toLowerCase()}">${document.getElementById('patTransfusiones').value}</td></tr>
+        <tr><td><strong>Traumatismos</strong></td><td class="valor-${document.getElementById('patTrauma').value.toLowerCase()}">${document.getElementById('patTrauma').value}</td></tr>
+        <tr><td><strong>Tuberculosis</strong></td><td class="valor-${document.getElementById('patTuber').value.toLowerCase()}">${document.getElementById('patTuber').value}</td></tr>
+        <tr><td><strong>Otros</strong></td><td>${document.getElementById('patOtros').value}</td></tr>
+      </table>
+    `;
+
+    // --------------------- ANTECEDENTES PERSONALES NO PATOLÓGICOS ---------------------
+    // Hábitos
+    const habitos = [];
+    if (document.getElementById('habUñas').checked) habitos.push(document.getElementById('habUñas').value);
+    if (document.getElementById('habChupa').checked) habitos.push(document.getElementById('habChupa').value);
+    if (document.getElementById('habBrux').checked) habitos.push(document.getElementById('habBrux').value);
+    if (document.getElementById('habMorder').checked) habitos.push(document.getElementById('habMorder').value);
+    const habitosStr = habitos.length > 0 ? habitos.join(', ') : 'Ninguno';
+
+    // Adicciones
+    const adicciones = [];
+    if (document.getElementById('adicAlcohol').checked) adicciones.push(document.getElementById('adicAlcohol').value);
+    if (document.getElementById('adicTabaco').checked) adicciones.push(document.getElementById('adicTabaco').value);
+    if (document.getElementById('adicDrogas').checked) {
+      adicciones.push(
+        document.getElementById('adicDrogas').value +
+        (document.getElementById('adicCual').value ? ` (${document.getElementById('adicCual').value})` : '')
+      );
+    }
+    const adiccionesStr = adicciones.length > 0 ? adicciones.join(', ') : 'Ninguna';
+
+    // Medicamentos actuales
+    let meds = document.getElementById('medicamentos').value;
+    let medsCual = document.getElementById('medicamentosCual').value;
+    if (meds === 'SI' && medsCual) {
+      meds += ` ( ${medsCual} )`;
+    }
+
+    contentHTML += `
+      <h3 class="section-title">Antecedentes Personales No Patológicos</h3>
+      <table>
+        <tr><th>Concepto</th><th>Valor</th></tr>
+        <tr><td><strong>Hábitos</strong></td><td>${habitosStr}</td></tr>
+        <tr><td><strong>Adicciones</strong></td><td>${adiccionesStr}</td></tr>
+        <tr><td><strong>Higiene dental</strong></td><td>${document.getElementById('higiene').value}</td></tr>
+        <tr><td><strong>Inmunizaciones</strong></td><td>${document.getElementById('inmunizaciones').value}</td></tr>
+        <tr><td><strong>¿Existe embarazo?</strong></td><td class="valor-${document.getElementById('embarazo').value.toLowerCase()}">${document.getElementById('embarazo').value}</td></tr>
+        <tr><td><strong>¿Toma algún medicamento?</strong></td><td>${meds}</td></tr>
+      </table>
+    `;
+
+    // --------------------- FIRMA ---------------------
+    contentHTML += `
+      <h3 class="section-title">Autorización del Paciente</h3>
+      <p style="font-size: 9px; margin: 8px 0; line-height: 1.3;">
+        Por medio de la presente, autorizo a la Dra. Dulce María Velázquez Quintana a realizar los procedimientos 
+        dentales necesarios. Confirmo que la información proporcionada en esta historia clínica es verídica y completa.
+      </p>
+      <div style="margin-top: 25px;">
+        <div style="margin-bottom: 20px; font-size: 9px;">
+          <strong>Nombre completo del paciente:</strong> ${document.getElementById('nombre').value}
+        </div>
+        <div style="text-align: center;">
+          <div style="display: inline-block; min-width: 250px; border-top: 2px solid #000; padding-top: 4px; font-size: 8px;">
+            Firma del paciente
+          </div>
+          <div style="display: inline-block; min-width: 120px; margin-left: 40px;">
+            <div style="border-top: 2px solid #000; padding-top: 4px; font-size: 8px;">
+              Fecha
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Mostramos la vista previa en el div oculto
+    const pdfDiv = document.getElementById('pdf');
+    pdfDiv.innerHTML = contentHTML;
+    pdfDiv.style.display = 'block';
+
+    // Convertimos a canvas con html2canvas
+    const canvas = await html2canvas(pdfDiv);
+    const imgData = canvas.toDataURL('image/png');
+
+    // Usamos jsPDF para generar el archivo
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const imgWidth = 190; // Ancho de la imagen en el PDF
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    let heightLeft = imgHeight;
+    let position = 10;
+
+    pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+    heightLeft -= pageHeight - 20;
+
+    // Si el contenido es extenso, manejar varias páginas:
+    while (heightLeft > 0) {
+      position = heightLeft - imgHeight;
+      pdf.addPage();
+      pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+    }
+
+    // Guardamos el PDF en la variable global
+    pdfGenerado = pdf;
+    
+    // Mostramos los botones de acción
+    const previewActions = document.getElementById('previewActions');
+    previewActions.style.display = 'flex';
+    previewActions.classList.add('show');
+    
+    // Scroll suave hacia la vista previa
+    pdfDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function descargarPDF() {
+    if (pdfGenerado) {
+      const nombrePaciente = document.getElementById('nombre').value.trim();
+      const nombreArchivo = nombrePaciente 
+        ? `Historia_Clinica_${nombrePaciente.replace(/\s+/g, '_')}.pdf`
+        : 'Historia_Clinica_Dental.pdf';
+      
+      pdfGenerado.save(nombreArchivo);
+    } else {
+      alert('Por favor, genera primero la vista previa del PDF.');
+    }
+  }
+
+  function imprimirPDF() {
+    if (pdfGenerado) {
+      // Abrimos el PDF en una nueva ventana para imprimirlo
+      const pdfBlob = pdfGenerado.output('blob');
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+      const printWindow = window.open(pdfUrl, '_blank');
+      
+      // Esperamos a que cargue y luego imprimimos
+      if (printWindow) {
+        printWindow.onload = function() {
+          printWindow.print();
+        };
+      }
+    } else {
+      alert('Por favor, genera primero la vista previa del PDF.');
+    }
+  }
+
+  function cerrarPreview() {
+    document.getElementById('pdf').style.display = 'none';
+    const previewActions = document.getElementById('previewActions');
+    previewActions.style.display = 'none';
+    previewActions.classList.remove('show');
+    pdfGenerado = null;
+    
+    // Scroll hacia arriba
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+</script>
+</body>
+</html>
